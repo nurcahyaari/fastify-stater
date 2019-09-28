@@ -10,6 +10,9 @@ module.exports = function (fastify, opts, next) {
     fastify.post('/login', async (request, reply) => {
         await authController.login(request, reply);
     })
+    fastify.post('/check', async (request, reply) => {
+        await authController.checkToken(request, reply);
+    })
     fastify.post('/refresh', async (request, reply) => {
         await authController.refreshToken(request, reply);
     })

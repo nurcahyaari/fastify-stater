@@ -77,7 +77,7 @@ class Auth {
         let val = fs.readFileSync(DIR_PATH, {encoding : "utf8"});
         val = JSON.parse(val);
         let foundedToken = false;
-        let tokenHasUsed = false;
+        let tokenWasUsed = false;
         let tokenFound;
         let used = 0;
         for(let v in val){
@@ -87,7 +87,7 @@ class Auth {
             if(token === refreshToken){
                 foundedToken = true;
                 if(val[v].used === 0){
-                    tokenHasUsed = true;
+                    tokenWasUsed = true;
                     used = 1;
                     tokenFound = jwt.verify(token, this.getPrivateKey());
                 }
@@ -98,9 +98,9 @@ class Auth {
                 msg : "TOKEN_NOT_FOUND"
             };
         }
-        if(!tokenHasUsed){
+        if(!tokenWasUsed){
             return {
-                msg : "TOKEN_HAS_USED"
+                msg : "TOKEN_WAS_USED"
             };
         }
         val = fs.readFileSync(DIR_PATH, {encoding : "utf8"});
@@ -115,6 +115,17 @@ class Auth {
         }
         fs.writeFileSync(DIR_PATH, JSON.stringify(val), () => {});
         return this.generateToken(tokenFound.sub, tokenFound.status);
+    }
+
+    checkToken(token){
+        const userToken = jwt.verify(token, this.getPrivateKey());
+        if(userToken.exp > new Date().getTime()){
+            return true;
+        } else {
+            return {
+                msg : "TOKEN_WAS_EXPIRED"
+            }
+        }
     }
 }
 
