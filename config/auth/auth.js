@@ -9,11 +9,11 @@ class Auth {
     }
 
     getPrivateKey(){
-        return fs.readFileSync(`${__dirname}/app.rsa`);
+        return fs.readFileSync(`${__dirname}/app.rsa`); //openssl genrsa -out app.rsa 2048
     }
 
     getPublicKey(){
-        return fs.readFileSync(`${__dirname}/app.rsa.pub`);
+        return fs.readFileSync(`${__dirname}/app.rsa.pub`); //openssl rsa -in app.rsa -pubout > app.rsa.pub
     }
 
     async saveToLocal(token) {
