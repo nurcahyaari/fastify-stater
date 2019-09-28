@@ -2,6 +2,8 @@ const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const path = require('path');
 const DIR_PATH = "./tmp/token.json";
+const crypto = require('crypto');
+
 class Auth {
     
     init(exp = 8){
@@ -18,9 +20,13 @@ class Auth {
 
     async saveToLocal(token) {
         let dirPath = path.dirname(DIR_PATH);
+        const mykey = crypto.createCipher('aes-128-cbc', process.env.KEY_ENC_TOKEN);
+        token = mykey.update(token, 'utf8', 'hex')
+        token += mykey.final('hex');
         if(fs.existsSync(DIR_PATH)){
             let val = fs.readFileSync(DIR_PATH, {encoding : "utf8"});
             val = JSON.parse(val);
+
             val.push({
                 token : token,
                 used : 0
@@ -75,13 +81,15 @@ class Auth {
         let tokenFound;
         let used = 0;
         for(let v in val){
-            // let token = jwt.verify(val[v].token, this.getPrivateKey());
-            if(val[v].token === refreshToken){
+            let mykey = crypto.createDecipher('aes-128-cbc', process.env.KEY_ENC_TOKEN);
+            let token = mykey.update(val[v].token, 'hex', 'utf8')
+            token += mykey.final('utf8');
+            if(token === refreshToken){
                 foundedToken = true;
                 if(val[v].used === 0){
                     tokenHasUsed = true;
                     used = 1;
-                    tokenFound = jwt.verify(val[v].token, this.getPrivateKey());
+                    tokenFound = jwt.verify(token, this.getPrivateKey());
                 }
             }
         }
@@ -95,10 +103,13 @@ class Auth {
                 msg : "TOKEN_HAS_USED"
             };
         }
-        let val = fs.readFileSync(DIR_PATH, {encoding : "utf8"});
+        val = fs.readFileSync(DIR_PATH, {encoding : "utf8"});
         val = JSON.parse(val);
         for(let v in val){
-            if(val[v].token === refreshToken){
+            let mykey = crypto.createDecipher('aes-128-cbc', process.env.KEY_ENC_TOKEN);
+            let token = mykey.update(val[v].token, 'hex', 'utf8')
+            token += mykey.final('utf8');
+            if(token === refreshToken){
                 val[v].used = 1;
             }
         }
